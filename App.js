@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import SplashScreen from 'react-native-splash-screen';
+import Navigation from './src/navigation/mainStack';
 import {StyleSheet, View} from 'react-native';
-import Onboarding from './src/screens/onboarding';
 
 const App = () => {
   useEffect(() => {
@@ -10,7 +10,7 @@ const App = () => {
 
   return (
     <View style={styles.container}>
-      <Onboarding />
+      <Navigation />
     </View>
   );
 };

@@ -8,6 +8,8 @@ import {
   Dimensions,
   useColorScheme,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import HeaderTextGroup from '../text/headerTextGroup';
 
 const windowHeight = Dimensions.get('window').height;
 const OnboardingItem = ({item}) => {
@@ -15,39 +17,44 @@ const OnboardingItem = ({item}) => {
   const colorScheme = useColorScheme();
 
   return (
-    <View
-      style={[
-        styles.container,
-        {width, backgroundColor: colorScheme === 'light' ? '#fff' : '#272930'},
-      ]}>
-      <View
-        style={{
-          paddingLeft: '5%',
-          paddingTop: '20%',
-        }}>
-        <Text style={[styles.header, {color: '#EC4969'}]}>{item.title}</Text>
-        <Text
-          style={[
-            styles.subtext,
-            {marginTop: 0, color: colorScheme === 'light' ? '#5e5e5e' : '#fff'},
-          ]}>
-          {item.subtext}
-        </Text>
-      </View>
+    <View style={[styles.container, {width}]}>
+      <LinearGradient
+        useAngle={true}
+        angle={135}
+        angleCenter={{x: 0.5, y: 0.5}}
+        colors={
+          colorScheme === 'light'
+            ? ['#fbfdfe', '#e3ebf2', '#eff7fb']
+            : ['#31333b', '#30343d', '#31343d']
+        }
+        style={styles.container}>
+        <View
+          style={{
+            paddingLeft: '5%',
+            paddingTop: '20%',
+          }}>
+          <HeaderTextGroup
+            header={item.title}
+            subHeader={item.subtext}
+            headerColor={colorScheme === 'light' ? '#393b40' : '#fff'}
+            subHeaderColor={colorScheme === 'light' ? '#5e5e5e' : '#fff'}
+          />
+        </View>
 
-      <Image style={styles.routeImage} source={item.image} />
-      <View
-        style={{
-          paddingHorizontal: '5%',
-        }}>
-        <Text
-          style={[
-            styles.subtext,
-            {color: colorScheme === 'light' ? '#5e5e5e' : '#fff'},
-          ]}>
-          {item.body}
-        </Text>
-      </View>
+        <Image style={styles.routeImage} source={item.image} />
+        <View
+          style={{
+            paddingHorizontal: '5%',
+          }}>
+          <Text
+            style={[
+              styles.subtext,
+              {color: colorScheme === 'light' ? '#5e5e5e' : '#fff'},
+            ]}>
+            {item.body}
+          </Text>
+        </View>
+      </LinearGradient>
     </View>
   );
 };
