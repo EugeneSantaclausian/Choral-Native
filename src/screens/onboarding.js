@@ -1,12 +1,20 @@
 import React, {useState, useRef} from 'react';
-import {StyleSheet, View, FlatList, StatusBar} from 'react-native';
+import {
+  StyleSheet,
+  View,
+  FlatList,
+  useWindowDimensions,
+  Animated,
+} from 'react-native';
 import OnboardingItem from '../components/onboarding/onboardingItem';
 import OnboardingData from '../components/onboarding/onboardingData';
-import PrimaryButton from '../components/primarybutton';
+import PrimaryButton from '../components/buttons/primarybutton';
 import Icon from 'react-native-vector-icons/AntDesign';
 import IonIcon from 'react-native-vector-icons/Ionicons';
 
-const Paginator = () => {
+const Paginator = ({data, scrollX}) => {
+  const {width} = useWindowDimensions();
+
   return (
     <View
       style={{
@@ -19,25 +27,29 @@ const Paginator = () => {
         position: 'absolute',
         bottom: 50,
       }}>
-      {/*<View
-        style={{
-          width: 15,
-          height: 5,
-          backgroundColor: '#EC4969',
-          paddingVertical: '0.25%',
-          borderRadius: 10,
-        }}
-      />*/}
-      {OnboardingData.map(item => {
+      {data.map((_, i) => {
+        const inputRange = [(i - 1) * width, i * width, (i + 1) * width];
+        const dotWidth = scrollX.interpolate({
+          inputRange,
+          outputRange: [8, 20, 8],
+          extrapolate: 'clamp',
+        });
+        const opacity = scrollX.interpolate({
+          inputRange,
+          outputRange: [0.3, 1, 0.3],
+          extrapolate: 'clamp',
+        });
+
         return (
-          <View
-            key={item.id}
+          <Animated.View
+            key={i.toString()}
             style={{
-              width: 7,
+              width: dotWidth,
               height: 7,
-              backgroundColor: '#edbec7',
-              paddingVertical: '0.25%',
+              backgroundColor: '#EC4969',
+              marginHorizontal: 8,
               borderRadius: 10,
+              opacity,
             }}
           />
         );
@@ -46,23 +58,26 @@ const Paginator = () => {
   );
 };
 
-const Onboarding = () => {
+const Onboarding = ({navigation}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const onboardingRef = useRef();
+  const scrollX = useRef(new Animated.Value(0)).current;
 
   const scrollToNext = () => {
     if (currentIndex < OnboardingData.length - 1) {
       onboardingRef.current.scrollToIndex({index: currentIndex + 1});
-      setCurrentIndex(currentIndex + 1);
     } else {
-      setCurrentIndex(0);
-      onboardingRef.current.scrollToIndex({index: 0});
+      return navigation.navigate('Home');
     }
   };
 
-  const updateIndex = () => {
-    console.log('CURRENT', onboardingRef.current.index);
-  };
+  //Set the Ref for the Index Whenever the Flatlist Scrolls
+  const viewableItemsChanged = useRef(({viewableItems}) => {
+    setCurrentIndex(viewableItems[0].index);
+  }).current;
+
+  //Value should change only when Next Slide Item is 50% on screen
+  const viewConfig = useRef({viewAreaCoveragePercentThreshold: 50}).current;
 
   return (
     <View style={styles.container}>
@@ -74,10 +89,18 @@ const Onboarding = () => {
         data={OnboardingData}
         bounces={false}
         renderItem={({item}) => <OnboardingItem item={item} key={item.id} />}
-        //onScrollEndDrag={updateIndex}
+        onScroll={Animated.event(
+          [{nativeEvent: {contentOffset: {x: scrollX}}}],
+          {
+            useNativeDriver: false, //This animation uses Width & the Native Driver does not Support Width
+          },
+        )}
+        onViewableItemsChanged={viewableItemsChanged}
+        viewabilityConfig={viewConfig}
+        scrollEventThrottle={32}
         ref={onboardingRef}
       />
-      <Paginator />
+      <Paginator data={OnboardingData} scrollX={scrollX} />
       <View style={styles.buttonView}>
         <PrimaryButton
           onPress={scrollToNext}
@@ -99,7 +122,6 @@ const Onboarding = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'red',
   },
   button: {
     backgroundColor: '#EC4969',
